@@ -21,10 +21,19 @@ import { useClipboard } from '@vueuse/core'
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-const source = ref('')
-const { copy, copied } = useClipboard({ source })
+interface Item {
+  text: string
+  cipher: string
+  d: string
+  n: string
+  timestamp: number
+  copied: boolean
+}
 
-const handleCopy = async (item: any) => {
+const source = ref('')
+const { copy } = useClipboard({ source })
+
+const handleCopy = async (item: Item) => {
   await copy(item.cipher)
   item.copied = true
   setTimeout(() => (item.copied = false), 1500)
@@ -36,10 +45,12 @@ const d = ref(null)
 const n = ref(null)
 const e = ref(null)
 
-const items = ref<{ text: string; cipher: string; d: string; n: string; timestamp: number }[]>([])
+const items = ref<
+  { text: string; cipher: string; d: string; n: string; timestamp: number; copied: boolean }[]
+>([])
 
 const loadItems = () => {
-  const loaded: { text: string; cipher: string; timestamp: number }[] = []
+  const loaded: Item[] = []
 
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)
@@ -156,7 +167,7 @@ onMounted(() => {
                 <Type />
               </InputGroupAddon>
               <InputGroupInput
-                class="text-sm placeholder:normal-case lowercase"
+                class="text-sm placeholder:normal-case text-primary lowercase"
                 v-model="openText"
                 placeholder="Введите текст"
               />

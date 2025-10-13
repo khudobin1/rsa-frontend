@@ -35,23 +35,32 @@ import { useClipboard } from '@vueuse/core'
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
+interface Item {
+  text: string
+  cipher: string
+  d: string
+  n: string
+  timestamp: number
+  copied: boolean
+}
+
 const source = ref('')
-const { copy, copied } = useClipboard({ source })
+const { copy } = useClipboard({ source })
 
 const n = ref('')
 const d = ref('')
 const cipherText = ref('')
 
-const handleCopy = async (item: any) => {
+const handleCopy = async (item: Item) => {
   await copy(item.text)
   item.copied = true
   setTimeout(() => (item.copied = false), 1500)
 }
 
-const items = ref<{ text: string; cipher: string; timestamp: number }[]>([])
+const items = ref<Item[]>([])
 
 const loadItems = () => {
-  const loaded: { text: string; cipher: string; timestamp: number }[] = []
+  const loaded: Item[] = []
 
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)
@@ -71,7 +80,7 @@ const loadItems = () => {
   items.value = loaded.sort((a, b) => b.timestamp - a.timestamp)
 }
 
-const deleteItem = (item: any) => {
+const deleteItem = (item: Item) => {
   const keyToRemove = Object.keys(localStorage).find((key) => {
     if (!key.startsWith('decryptedText-')) return false
     try {
@@ -141,7 +150,7 @@ onMounted(() => {
                 <Binary />
               </InputGroupAddon>
               <InputGroupInput
-                class="text-sm placeholder:normal-case uppercase"
+                class="text-sm placeholder:normal-case lowercase text-primary"
                 v-model="cipherText"
                 placeholder="Введите текст"
               />
