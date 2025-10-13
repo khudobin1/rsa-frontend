@@ -102,7 +102,7 @@ const decrypt = async () => {
     .trim()
     .split(/\s+/)
     .map((x) => parseInt(x, 10))
-  const response = await axios.post('http://92.51.39.215:8080/decipher', {
+  const response = await axios.post('https://92.51.39.215:8080/decipher', {
     cipher,
     n: parseInt(n.value, 10),
     d: parseInt(d.value, 10),

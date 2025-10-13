@@ -90,7 +90,7 @@ const deleteItem = (item: any) => {
 const openText = ref('')
 
 const generateParams = async () => {
-  const response = await axios.get('http://92.51.39.215:8080/keys/50')
+  const response = await axios.get('https://92.51.39.215:8080/keys/50')
   p.value = response.data.p
   q.value = response.data.q
   d.value = response.data.d
@@ -99,7 +99,7 @@ const generateParams = async () => {
 }
 
 const encrypt = async () => {
-  const response = await axios.post('http://92.51.39.215:8080/cipher', {
+  const response = await axios.post('https://92.51.39.215:8080/cipher', {
     text: openText.value.toLowerCase(),
     n: n.value,
     e: e.value,
