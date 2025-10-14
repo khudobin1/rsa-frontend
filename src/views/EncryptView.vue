@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label'
 import { InputGroup, InputGroupInput, InputGroupAddon } from '@/components/ui/input-group'
 import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from '@/components/ui/item'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { Spinner } from '@/components/ui/spinner'
 import { useClipboard } from '@vueuse/core'
 
 import { ref, onMounted } from 'vue'
@@ -44,6 +45,9 @@ const q = ref(null)
 const d = ref(null)
 const n = ref(null)
 const e = ref(null)
+
+const loadingGenerate = ref(false)
+const loadingEncrypt = ref(false)
 
 const items = ref<
   { text: string; cipher: string; d: string; n: string; timestamp: number; copied: boolean }[]
@@ -90,32 +94,46 @@ const deleteItem = (item: any) => {
 const openText = ref('')
 
 const generateParams = async () => {
-  const response = await axios.get('https://api.rsa.khudobin.ru/keys/50')
-  p.value = response.data.p
-  q.value = response.data.q
-  d.value = response.data.d
-  n.value = response.data.n
-  e.value = response.data.e
+  loadingGenerate.value = true
+  try {
+    const response = await axios.get('https://api.rsa.khudobin.ru/keys/50')
+    p.value = response.data.p
+    q.value = response.data.q
+    d.value = response.data.d
+    n.value = response.data.n
+    e.value = response.data.e
+  } catch (error) {
+    console.error('Ошибка генерации параметров:', error)
+  } finally {
+    loadingGenerate.value = false
+  }
 }
 
 const encrypt = async () => {
-  const response = await axios.post('https://api.rsa.khudobin.ru/cipher', {
-    text: openText.value.toLowerCase(),
-    n: n.value,
-    e: e.value,
-  })
-  const cipherStr = response.data.cipher.join(' ')
-  localStorage.setItem(
-    `encryptedText-${openText.value}-${n.value}-${e.value}`,
-    JSON.stringify({
-      text: openText.value,
-      cipher: cipherStr,
-      d: d.value,
+  loadingEncrypt.value = true
+  try {
+    const response = await axios.post('https://api.rsa.khudobin.ru/cipher', {
+      text: openText.value.toLowerCase(),
       n: n.value,
-      timestamp: Date.now(),
-    }),
-  )
-  loadItems()
+      e: e.value,
+    })
+    const cipherStr = response.data.cipher.join(' ')
+    localStorage.setItem(
+      `encryptedText-${openText.value}-${n.value}-${e.value}`,
+      JSON.stringify({
+        text: openText.value,
+        cipher: cipherStr,
+        d: d.value,
+        n: n.value,
+        timestamp: Date.now(),
+      }),
+    )
+    loadItems()
+  } catch (error) {
+    console.error('Ошибка шифрования:', error)
+  } finally {
+    loadingEncrypt.value = false
+  }
 }
 
 onMounted(() => {
@@ -159,7 +177,9 @@ onMounted(() => {
               >или</span
             >
           </div>
-          <Button class="cursor-pointer" @click="generateParams"><Sparkles />Сгенерируйте!</Button>
+          <Button class="cursor-pointer" @click="generateParams"
+            ><Spinner v-if="loadingGenerate" /><Sparkles v-else />Сгенерируйте!</Button
+          >
           <div class="space-y-2">
             <Label class="text-sm">Текст</Label>
             <InputGroup>
@@ -173,7 +193,9 @@ onMounted(() => {
               />
             </InputGroup>
           </div>
-          <Button class="cursor-pointer" @click="encrypt"><Binary />Зашифровать</Button>
+          <Button class="cursor-pointer" @click="encrypt"
+            ><Spinner v-if="loadingEncrypt" /><Binary v-else />Зашифровать</Button
+          >
         </div>
         <Separator orientation="vertical" />
         <div class="w-1/2">

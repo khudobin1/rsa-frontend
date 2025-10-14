@@ -14,6 +14,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
 import { InputGroup, InputGroupInput, InputGroupAddon } from '@/components/ui/input-group'
+import { Spinner } from '@/components/ui/spinner'
 import {
   Item,
   ItemActions,
@@ -59,6 +60,8 @@ const handleCopy = async (item: Item) => {
 
 const items = ref<Item[]>([])
 
+const loadingDecrypt = ref(false)
+
 const loadItems = () => {
   const loaded: Item[] = []
 
@@ -98,20 +101,27 @@ const deleteItem = (item: Item) => {
 }
 
 const decrypt = async () => {
-  const cipher = cipherText.value
-    .trim()
-    .split(/\s+/)
-    .map((x) => parseInt(x, 10))
-  const response = await axios.post('https://api.rsa.khudobin.ru/decipher', {
-    cipher,
-    n: parseInt(n.value, 10),
-    d: parseInt(d.value, 10),
-  })
-  localStorage.setItem(
-    `decryptedText-${cipherText.value}-${n.value}-${d.value}`,
-    JSON.stringify({ cipher: cipherText.value, text: response.data.text, timestamp: Date.now() }),
-  )
-  loadItems()
+  loadingDecrypt.value = true
+  try {
+    const cipher = cipherText.value
+      .trim()
+      .split(/\s+/)
+      .map((x) => parseInt(x, 10))
+    const response = await axios.post('https://api.rsa.khudobin.ru/decipher', {
+      cipher,
+      n: parseInt(n.value, 10),
+      d: parseInt(d.value, 10),
+    })
+    localStorage.setItem(
+      `decryptedText-${cipherText.value}-${n.value}-${d.value}`,
+      JSON.stringify({ cipher: cipherText.value, text: response.data.text, timestamp: Date.now() }),
+    )
+    loadItems()
+  } catch (error) {
+    console.error(error)
+  } finally {
+    loadingDecrypt.value = false
+  }
 }
 
 onMounted(() => {
@@ -156,7 +166,9 @@ onMounted(() => {
               />
             </InputGroup>
           </div>
-          <Button class="cursor-pointer" @click="decrypt"><Type />Расшифровать</Button>
+          <Button class="cursor-pointer" @click="decrypt"
+            ><Spinner v-if="loadingDecrypt" /><Type v-else />Расшифровать</Button
+          >
         </div>
         <Separator orientation="vertical" />
         <div class="w-1/2">
