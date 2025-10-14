@@ -193,10 +193,8 @@ onMounted(() => {
                     @click="handleCopy(item)"
                     class="cursor-pointer"
                   >
-                    <span v-if="item.copied" class="flex items-center gap-1"
-                      ><Check />Скопировано</span
-                    >
-                    <span v-else class="flex items-center gap-1"><Copy />Копировать</span>
+                    <span v-if="item.copied" class="flex items-center gap-1"><Check /></span>
+                    <span v-else class="flex items-center gap-1"><Copy /></span>
                   </Button>
                   <Button
                     variant="destructive"
