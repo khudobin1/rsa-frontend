@@ -27,4 +27,8 @@ const router = createRouter({
   ],
 })
 
+router.afterEach((to) => {
+  document.title = (to.meta.title as string) || 'Алгоритм RSA'
+})
+
 export default router
