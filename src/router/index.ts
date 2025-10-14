@@ -13,10 +13,16 @@ const router = createRouter({
     {
       path: '/encrypt',
       component: EncryptView,
+      meta: {
+        title: 'Зашифрование RSA',
+      },
     },
     {
       path: '/decrypt',
       component: DecryptView,
+      meta: {
+        title: 'Расшифрование RSA',
+      },
     },
   ],
 })
