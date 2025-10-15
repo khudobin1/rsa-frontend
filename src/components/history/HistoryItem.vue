@@ -2,10 +2,12 @@
 import { inject } from 'vue'
 import type { THistoryItem } from '@/types'
 import { useCopy } from '@/composables/useCopy'
+import { useRouter } from 'vue-router'
+import { useDecryptStore } from '@/stores/decryptStore'
 
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from '@/components/ui/item'
 import { Button } from '@/components/ui/button'
-import { Check, Copy, Trash } from 'lucide-vue-next'
+import { Check, Copy, Trash, KeySquare } from 'lucide-vue-next'
 
 interface Props {
   item: THistoryItem
@@ -13,6 +15,19 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const router = useRouter()
+const decryptStore = useDecryptStore()
+
+const goToDecrypt = () => {
+  decryptStore.setPayload({
+    nPayload: props.item.n,
+    dPayload: props.item.d,
+    textPayload: props.item.cipher,
+  })
+  console.info('Передали payload')
+  console.info(decryptStore.payload)
+  router.push('/decrypt')
+}
 
 const { handleCopy } = useCopy()
 const handleDelete = inject<(item: THistoryItem) => void>('deleteItem')
@@ -55,6 +70,15 @@ console.info('Режим', props.mode)
       <Button variant="outline" size="sm" @click="handleCopy(props.item)" class="cursor-pointer">
         <span v-if="props.item.copied" class="flex items-center gap-1"><Check /></span>
         <span v-else class="flex items-center gap-1"><Copy /></span>
+      </Button>
+      <Button
+        v-if="props.mode == 'encrypt'"
+        size="sm"
+        variant="outline"
+        @click="goToDecrypt"
+        class="cursor-pointer hover:bg-primary"
+      >
+        <KeySquare class="text-white" />
       </Button>
       <Button
         variant="destructive"

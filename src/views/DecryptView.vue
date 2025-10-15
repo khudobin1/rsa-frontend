@@ -12,6 +12,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { ref, onMounted, provide } from 'vue'
 import axios from 'axios'
 import { useHistoryStorage } from '@/composables/useHistoryStorage'
+import { useDecryptStore } from '@/stores/decryptStore'
 
 const n = ref('')
 const d = ref('')
@@ -49,7 +50,19 @@ const decrypt = async () => {
   }
 }
 
+const decryptStore = useDecryptStore()
+
 onMounted(() => {
+  const payload = decryptStore.payload
+  console.info('Пробуем расшифровать payload:')
+  console.info(payload)
+  if (payload) {
+    const { nPayload, dPayload, textPayload } = payload
+    cipherText.value = textPayload
+    n.value = nPayload
+    d.value = dPayload
+    decrypt()
+  }
   loadItems()
 })
 </script>
