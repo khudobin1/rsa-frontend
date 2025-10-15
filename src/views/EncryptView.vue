@@ -80,29 +80,29 @@ const encrypt = async () => {
             <div class="flex gap-3 text-primary">
               <InputGroup>
                 <InputGroupAddon>
-                  <span class="text-sm">Параметр <span class="font-bold">p</span></span>
+                  <span class="font-bold text-sm">p</span>
                 </InputGroupAddon>
                 <InputGroupAddon align="inline-end" v-if="p">
                   <Button @click="p = ''" variant="ghost" class="size-4">
                     <X class="w-1 h-1" />
                   </Button>
                 </InputGroupAddon>
-                <InputGroupInput class="text-sm" v-model="p" align="left" />
+                <InputGroupInput class="text-sm" v-model="p" />
               </InputGroup>
               <InputGroup>
                 <InputGroupAddon>
-                  <span class="text-sm">Параметр <span class="font-bold">q</span></span>
+                  <span class="font-bold text-sm">q</span>
                 </InputGroupAddon>
                 <InputGroupAddon align="inline-end" v-if="q">
                   <Button @click="q = ''" variant="ghost" class="size-4">
                     <X class="w-1 h-1" />
                   </Button>
                 </InputGroupAddon>
-                <InputGroupInput class="text-sm" v-model="q" align="left" />
+                <InputGroupInput class="text-sm" v-model="q" />
               </InputGroup>
               <InputGroup>
                 <InputGroupAddon>
-                  <span class="text-sm">Параметр <span class="font-bold">d</span></span>
+                  <span class="font-bold text-sm">d</span>
                 </InputGroupAddon>
                 <InputGroupAddon align="inline-end" v-if="d">
                   <Button @click="d = ''" variant="ghost" class="size-4">

@@ -65,7 +65,7 @@ onMounted(() => {
             <div class="flex gap-3 text-primary">
               <InputGroup>
                 <InputGroupAddon>
-                  <span class="text-sm">Ключ <span class="font-bold">n</span></span>
+                  <span class="font-bold text-sm">n</span>
                 </InputGroupAddon>
                 <InputGroupAddon align="inline-end" v-if="n">
                   <Button @click="n = ''" variant="ghost" class="size-4">
@@ -76,7 +76,7 @@ onMounted(() => {
               </InputGroup>
               <InputGroup>
                 <InputGroupAddon>
-                  <span class="text-sm">Ключ <span class="font-bold">d</span></span>
+                  <span class="font-bold text-sm">d</span>
                 </InputGroupAddon>
                 <InputGroupAddon align="inline-end" v-if="d">
                   <Button @click="d = ''" variant="ghost" class="size-4">
