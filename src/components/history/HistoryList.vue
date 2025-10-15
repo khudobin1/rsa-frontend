@@ -11,7 +11,10 @@ const props = defineProps<HistoryProps>()
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 max-h-76 overflow-auto">
+  <div
+    :class="props.mode === 'decrypt' ? 'max-h-[230px]' : ''"
+    class="flex flex-col gap-2 max-h-76 overflow-auto"
+  >
     <h1 class="text-xl font-semibold">
       {{ props.mode === 'encrypt' ? 'История зашифрований' : 'История расшифрований' }}
     </h1>
