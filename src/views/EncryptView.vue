@@ -1,97 +1,33 @@
 <script setup lang="ts">
-import {
-  Binary,
-  Type,
-  Sparkles,
-  TextSelect,
-  ArrowUpRightIcon,
-  Copy,
-  Check,
-  Trash,
-} from 'lucide-vue-next'
+import { provide } from 'vue'
+
+import EmptyHistory from '@/components/history/EmptyHistory.vue'
+import HistoryList from '@/components/history/HistoryList.vue'
+import { Binary, Type, Sparkles, X } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
 import { InputGroup, InputGroupInput, InputGroupAddon } from '@/components/ui/input-group'
-import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from '@/components/ui/item'
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+
 import { Spinner } from '@/components/ui/spinner'
-import { useClipboard } from '@vueuse/core'
 
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import axios from 'axios'
+import { useHistoryStorage } from '@/composables/useHistoryStorage'
 
-interface Item {
-  text: string
-  cipher: string
-  d: string
-  n: string
-  timestamp: number
-  copied: boolean
-}
-
-const source = ref('')
-const { copy } = useClipboard({ source })
-
-const handleCopy = async (item: Item) => {
-  await copy(item.cipher)
-  item.copied = true
-  setTimeout(() => (item.copied = false), 1500)
-}
-
-const p = ref(null)
-const q = ref(null)
-const d = ref(null)
-const n = ref(null)
-const e = ref(null)
+const p = ref('')
+const q = ref('')
+const d = ref('')
+const n = ref('')
+const e = ref('')
+const openText = ref('')
 
 const loadingGenerate = ref(false)
 const loadingEncrypt = ref(false)
 
-const items = ref<
-  { text: string; cipher: string; d: string; n: string; timestamp: number; copied: boolean }[]
->([])
-
-const loadItems = () => {
-  const loaded: Item[] = []
-
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i)
-    if (key?.startsWith('encryptedText-')) {
-      const value = localStorage.getItem(key)
-      if (value !== null) {
-        try {
-          const obj = JSON.parse(value)
-          loaded.push(obj)
-        } catch (err) {
-          console.error('Ошибка парсинга:', err)
-        }
-      }
-    }
-  }
-
-  items.value = loaded.sort((a, b) => b.timestamp - a.timestamp)
-}
-
-const deleteItem = (item: any) => {
-  const keyToRemove = Object.keys(localStorage).find((key) => {
-    if (!key.startsWith('encryptedText-')) return false
-    try {
-      const val = JSON.parse(localStorage.getItem(key) || '{}')
-      return val.text === item.text && val.cipher === item.cipher
-    } catch {
-      return false
-    }
-  })
-
-  if (keyToRemove) {
-    localStorage.removeItem(keyToRemove)
-    loadItems()
-  }
-}
-
-const openText = ref('')
+const { items, loadItems, saveItem, deleteItem } = useHistoryStorage('encrypt')
+provide('deleteItem', deleteItem)
 
 const generateParams = async () => {
   loadingGenerate.value = true
@@ -118,16 +54,12 @@ const encrypt = async () => {
       e: e.value,
     })
     const cipherStr = response.data.cipher.join(' ')
-    localStorage.setItem(
-      `encryptedText-${openText.value}-${n.value}-${e.value}`,
-      JSON.stringify({
-        text: openText.value,
-        cipher: cipherStr,
-        d: d.value,
-        n: n.value,
-        timestamp: Date.now(),
-      }),
-    )
+    saveItem({
+      text: openText.value,
+      cipher: cipherStr,
+      d: d.value,
+      n: n.value,
+    })
     loadItems()
   } catch (error) {
     console.error('Ошибка шифрования:', error)
@@ -135,10 +67,6 @@ const encrypt = async () => {
     loadingEncrypt.value = false
   }
 }
-
-onMounted(() => {
-  loadItems()
-})
 </script>
 
 <template>
@@ -154,11 +82,21 @@ onMounted(() => {
                 <InputGroupAddon>
                   <span class="text-sm">Параметр <span class="font-bold">p</span></span>
                 </InputGroupAddon>
+                <InputGroupAddon align="inline-end" v-if="p">
+                  <Button @click="p = ''" variant="ghost" class="size-4">
+                    <X class="w-1 h-1" />
+                  </Button>
+                </InputGroupAddon>
                 <InputGroupInput class="text-sm" v-model="p" align="left" />
               </InputGroup>
               <InputGroup>
                 <InputGroupAddon>
                   <span class="text-sm">Параметр <span class="font-bold">q</span></span>
+                </InputGroupAddon>
+                <InputGroupAddon align="inline-end" v-if="q">
+                  <Button @click="q = ''" variant="ghost" class="size-4">
+                    <X class="w-1 h-1" />
+                  </Button>
                 </InputGroupAddon>
                 <InputGroupInput class="text-sm" v-model="q" align="left" />
               </InputGroup>
@@ -166,18 +104,21 @@ onMounted(() => {
                 <InputGroupAddon>
                   <span class="text-sm">Параметр <span class="font-bold">d</span></span>
                 </InputGroupAddon>
+                <InputGroupAddon align="inline-end" v-if="d">
+                  <Button @click="d = ''" variant="ghost" class="size-4">
+                    <X class="w-1 h-1" />
+                  </Button>
+                </InputGroupAddon>
                 <InputGroupInput class="text-sm" v-model="d" align="left" />
               </InputGroup>
             </div>
           </div>
-          <div class="relative mb-4">
-            <Separator class="absolute top-2.5" />
-            <span
-              class="absolute left-1/2 right-1/2 bg-background text-center text-border text-sm w-[30px]"
-              >или</span
-            >
+          <div class="flex gap-2 items-center">
+            <hr class="flex-1" />
+            <p class="text-sm text-border">или</p>
+            <hr class="flex-1" />
           </div>
-          <Button class="cursor-pointer" @click="generateParams"
+          <Button class="cursor-pointer" @click="generateParams" :disabled="loadingGenerate"
             ><Spinner v-if="loadingGenerate" /><Sparkles v-else />Сгенерируйте!</Button
           >
           <div class="space-y-2">
@@ -186,6 +127,11 @@ onMounted(() => {
               <InputGroupAddon>
                 <Type />
               </InputGroupAddon>
+              <InputGroupAddon align="inline-end" v-if="openText">
+                <Button @click="openText = ''" variant="ghost" class="size-4">
+                  <X class="w-1 h-1" />
+                </Button>
+              </InputGroupAddon>
               <InputGroupInput
                 class="text-sm placeholder:normal-case text-primary lowercase"
                 v-model="openText"
@@ -193,61 +139,35 @@ onMounted(() => {
               />
             </InputGroup>
           </div>
-          <Button class="cursor-pointer" @click="encrypt"
+          <Button
+            class="cursor-pointer"
+            @click="encrypt"
+            :disabled="
+              openText.length === 0 ||
+              p.length === 0 ||
+              q.length === 0 ||
+              d.length === 0 ||
+              loadingEncrypt
+            "
             ><Spinner v-if="loadingEncrypt" /><Binary v-else />Зашифровать</Button
           >
         </div>
         <Separator orientation="vertical" />
         <div class="w-1/2">
-          <Empty v-if="items.length === 0">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <TextSelect />
-              </EmptyMedia>
-              <EmptyTitle>Вы еще ничего не шифровали</EmptyTitle>
-              <EmptyDescription>
-                Вы еще ничего не шифровали. Попробуйте зашифровать свой первый текст в панели слева.
-              </EmptyDescription>
-            </EmptyHeader>
-            <Button variant="link" as-child class="text-muted-foreground" size="sm">
-              <RouterLink to="/decrypt"> Нужно расшифровать? <ArrowUpRightIcon /> </RouterLink>
-            </Button>
-          </Empty>
-          <div v-else class="flex flex-col gap-2 max-h-76 overflow-auto">
-            <h1 class="text-xl font-semibold">История зашифрования</h1>
-            <div v-for="item in items" :key="item.cipher" class="">
-              <Item variant="outline">
-                <ItemContent>
-                  <ItemTitle class="font-mono text-ellipsis"
-                    >{{ item.cipher }} | n: {{ item.n }} | d: {{ item.d }}</ItemTitle
-                  >
-                  <ItemDescription class=""
-                    >{{ item.text }} •
-                    {{ new Date(item.timestamp).toLocaleString() }}</ItemDescription
-                  >
-                </ItemContent>
-                <ItemActions>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    @click="handleCopy(item)"
-                    class="cursor-pointer"
-                  >
-                    <span v-if="item.copied" class="flex items-center gap-1"><Check /></span>
-                    <span v-else class="flex items-center gap-1"><Copy /></span>
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    class="border border-red-500/40 cursor-pointer"
-                    @click="deleteItem(item)"
-                  >
-                    <Trash />
-                  </Button>
-                </ItemActions>
-              </Item>
-            </div>
-          </div>
+          <EmptyHistory
+            v-if="items.length === 0"
+            title="Вы еще ничего не шифровали"
+            description="Вы еще ничего не шифровали. Попробуйте зашифровать свой первый текст в панели слева."
+            linkText="Нужно расшифровать?"
+            linkUrl="/decrypt"
+          />
+          <HistoryList
+            v-else
+            :items="items"
+            title="История зашифрования"
+            mode="encrypt"
+            @delete="deleteItem"
+          />
         </div>
       </CardContent>
     </Card>
